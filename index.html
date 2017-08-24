@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Udacity Neighborhood Map</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,100,300,700">
+	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">-->
+	<link href="css/style.css" rel="stylesheet">
+	<link href="css/material-design-iconic-font.min.css" rel="stylesheet">
+</head>
+<body>
+	<div class="slide-menu" data-bind="visible: showMenu">
+
+        <div class="menu-container">
+            <h3>Timisoara Hot Places</h3>
+
+            <div class="search">
+                <input class="search-input" placeholder="Search for places...." data-bind="textInput: searchPlaces">
+            </div>
+
+            <div class="places-list">
+                <ul class="popular-places" data-bind="foreach: filteredMarkers">
+                    <li class="places" data-bind="text: title, click: showInfo"></li>
+                </ul>
+            </div>
+        </div>
+	</div>
+
+	<div class="main" data-bind="css: {'wide': isWide}">
+		<div id="header" class="nav-bar">
+		  <span class="menu-icon zmdi zmdi-menu" data-bind="click: toggleMenu"></span>
+		</div>
+
+		<div id="map"></div>
+	</div>
+
+	<script src='js/knockout-3.4.2.js'></script>
+	<script src="js/jquery-3.2.1.min.js"></script>
+	<script src="js/app.js"></script>
+	<script async src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyAp5joEAzGGxI5-hXqcUsPzNZPG_DXVr-s&callback=initMap" onerror="errorHandling()"></script>
+</body>
+</html>

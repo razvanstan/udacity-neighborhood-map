@@ -1,0 +1,185 @@
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  font-family: 'Roboto', sans-serif;
+}
+
+.slide-menu {
+    background: #3E606F;
+    height: 100%;
+    width: 50%;
+}
+
+h3 {
+ margin: 0;
+ height: 35px;
+ display:flex;
+ align-items:center;
+ color: #D1DBBD;
+}
+
+h2 {margin-bottom: 0;}
+.mt0 {margin-top: 0;}
+
+#pano {
+  width: 200px;
+  height: 200px;
+}
+
+.search {
+  display:flex;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  outline: 0;
+  border-radius: 4px;
+  margin: 10px auto;
+  border: 1px solid #3E606F;
+}
+
+.search-input:focus {
+    border-color: #F2836B;
+}
+
+.search-button {
+  cursor: pointer;
+  border: none;
+  padding: 0 20px;
+  background-color: #F2836B;
+  color: white;
+  font-size: 20px;
+}
+
+.search-button:hover {
+  background-color: #F2836B;
+}
+
+.places-list {
+  height: calc(100% - 140px);
+  overflow: scroll;
+}
+
+.popular-places {
+  margin: 0;
+  padding: 0;
+}
+
+.places {
+  list-style-type: none;
+  padding: 10px 0;
+  color: #D1DBBD;
+}
+
+.places:hover {
+  color: #F2836B;
+  cursor: pointer;
+}
+
+.main {
+  width: 100%;
+  height: 100%;
+}
+
+.wide {
+  width:50%;
+}
+
+.nav-bar {
+  height: 35px;
+  display:flex;
+  align-items:center;
+  background-color: #3E606F;
+}
+
+.menu-container {
+  padding: 0 15px;
+}
+
+.menu-icon {
+  cursor: pointer;
+  margin-left: 1%;
+  color: #D1DBBD;
+  font-size: 23px;
+}
+
+.pr-5 {
+  padding-right: 5px;
+}
+
+#map{
+  height: 95%;
+}
+
+@media screen and (min-width: 940px) {
+  .slide-menu { width: 20%; }
+  .wide { width: 80%; }
+}
+
+@media screen and (min-width: 600px) and (max-width: 939px) {
+  .slide-menu { width: 30%; }
+  .wide { width:70%; }
+}
+
+@media screen and (max-width: 400px) {
+  body { font-size: 13px; }
+
+  .places-list { height: calc(100% - 120px);  }
+  .menu-icon { font-size: 20px; }
+
+  h3, .search, .header {
+    height: 30px;
+  }
+
+  .search-bar {
+    font-size: 11px;
+    padding: 4px;
+  }
+}
+
+@media screen and (min-width: 750px) and (min-height: 1000px) {
+
+  body { font-size: 22px;  }
+
+  .slide-menu { width: 35%; }
+
+  h3, .search, .header {
+    height: 50px;
+  }
+
+  .search-bar {font-size: 18px;}
+
+  .search-button {
+    font-size: 30px;
+    padding: 0 30px;
+  }
+
+  .places-list {
+    height: calc(100% - 200px);
+  }
+
+  .wide {width:65%;}
+  .menu-icon {font-size: 31px;}
+}
+
+@media screen and (min-width: 1000px) and (min-height: 1000px) {
+  body {font-size: 27px;}
+
+  h3, .search, .header {
+    height: 70px;
+  }
+
+  .search-bar {font-size: 24.5px;}
+
+  .search-button {
+    font-size: 38px;
+    padding: 0 38px;
+  }
+
+  .places-list {height: calc(100% - 280px);}
+  .menu-icon {font-size: 45px;}
+}
