@@ -1,50 +1,65 @@
+var APP = {
+    //Timisoara, RO
+    lat: 45.756289,
+    lng: 21.228679,
+
+    numberOfPlaces: 10,
+    forsquareClientId: 'CAEHFQZR1BQF0NRMKY5DYKW0YZ0KFRD3OPI3X0DJ5TXOIJRH',
+    forsquareSecret: 'TDJPMCWXZXAL5K1P5CKOT34Q5TSCQAC45YHPCMN0IUFEKIN0',
+    forsquareVersion: '20170824',
+
+    gm_largeInfowindow: '',
+    gm_bounds: '',
+    gm_geocoder: '',
+
+    map: '',
+    markers: []
+};
 
 var ViewModel = function() {
 
-    var APP = {
-        //Timisoara, RO
-        lat: 45.756289,
-        lng: 21.228679,
+    var viewModel = this;
 
-        numberOfPlaces: 10,
-        forsquareClientId: 'CAEHFQZR1BQF0NRMKY5DYKW0YZ0KFRD3OPI3X0DJ5TXOIJRH',
-        forsquareSecret: 'TDJPMCWXZXAL5K1P5CKOT34Q5TSCQAC45YHPCMN0IUFEKIN0',
-        forsquareVersion: '20170824',
-
-        gm_largeInfowindow: '',
-        gm_bounds: '',
-        gm_geocoder: ''
+    viewModel = {
+        isWide: ko.observable(false),
+        showMenu: ko.observable(false),
+        markers: ko.observableArray(APP.markers),
+        searchPlaces: ko.observable(''),
+        toggleMenu: _toogleMenu,
+        zoomToArea: _zoomToArea
     };
 
-    var map;
-    var self = this;
-
-    initMap = function() {
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: {
-                lat: APP.lat,
-                lng: APP.lng
-            }
+    viewModel.filteredMarkers = ko.computed(function() {
+        ko.utils.arrayForEach(APP.markers, function(marker) {
+            marker.setVisible(false);
         });
 
-        self.loadData();
-    };
+        var filteredArray = [];
 
-    self.showMenu = ko.observable(false);
-    self.isWide = ko.observable(false);
-    self.location = ko.observable('Timisoara');
-    self.markers = ko.observableArray();
-    self.searchPlaces = ko.observable('');
+        filteredArray =  $.grep(APP.markers, function(a) {
+            var locationSearch = a.title.toLowerCase().indexOf(viewModel.searchPlaces().toLowerCase());
+            return locationSearch > -1;
+        });
 
-    self.toggleMenu = function() {
-        self.showMenu(!self.showMenu());
-        self.isWide(!self.isWide());
-    };
+        filteredArray.forEach(function(a) {
+            ko.utils.arrayForEach(APP.markers, function(marker) {
+                if(marker.title === a.title) {
+                    marker.setVisible(true);
+                }
+            });
+        });
+
+        return filteredArray;
+    });
+
+    function _toogleMenu() {
+        viewModel.showMenu(!viewModel.showMenu());
+        viewModel.isWide(!viewModel.isWide());
+    }
 
     // This function takes the user input value via data binding, locates it, and then zooms into that area
-    self.zoomToArea = function() {
+    function _zoomToArea() {
         APP.gm_geocoder = new google.maps.Geocoder();
-
         APP.gm_geocoder.geocode({address: 'Timisoara'}, function(results, status) {
 
             if (status === google.maps.GeocoderStatus.OK) {
@@ -55,79 +70,23 @@ var ViewModel = function() {
                 map.setCenter(results[0].geometry.location);
                 map.setZoom(13);
 
-                self.loadData();
+                loadFoursquareData();
             } else {
                 window.alert('We could not find that location. Try entering a more specific place.');
             }
         });
-    };
-
-    // Method to load the data for the user entered location using foursquare API
-    self.loadData = function() {
-
-        var foursquareUrl = 'https://api.foursquare.com/v2/venues/explore?ll=' + APP.lat + ',' + APP.lng + '&limit='+APP.numberOfPlaces+'&section=topPicks&day=any&time=any&locale=en&client_id='+APP.forsquareClientId+'&client_secret='+APP.forsquareSecret+'&v='+APP.forsquareVersion;
-
-        APP.gm_largeInfowindow = new google.maps.InfoWindow({maxWidth: 200});
-        APP.gm_bounds = new google.maps.LatLngBounds();
-
-        $.getJSON(foursquareUrl).done(function(data) {
-            displayLocationsOnMap(data.response.groups[0].items);
-        }).fail(function() {
-            window.alert('Foursquare API data could not be loaded. Please try again!');
-        });
-    };
-
-    // This function populates the infowindow when the marker is clicked
-    self.populateInfoWindow = function(marker, infowindow, place) {
-
-        // Check to make sure the infowindow is not already opened on this marker
-        if (infowindow.marker != marker) {
-            infowindow.marker = marker;
-
-            var contentString = [
-                '<h2>' + marker.title + '</h2>',
-                '<p class="mt0">' + place.venue.categories[0].name + '</p>',
-                '<p><strong><i class="zmdi zmdi-navigation pr-5"></i> Address: </strong>' + place.venue.location.formattedAddress + '</p>',
-                _getLocationPhone(),
-                _getLocationTips(),
-                _getLocationUrl(),
-                '<a href="https://foursquare.com/" target = "_blank">',
-                '<img src="https://ss0.4sqi.net/img/poweredByFoursquare/poweredby-one-color-cdf070cc7ae72b3f482cf2d075a74c8c.png" width="200" alt="Foursquare Logo">',
-                '</a>'
-            ].join(' ');
-
-            infowindow.setContent(contentString);
-            infowindow.open(map, marker);
-
-            infowindow.addListener('closeclick',function(){
-                infowindow.setMarker = null;
-                infowindow.setContent('');
-            });
-        }
-
-        function _getLocationPhone() {
-            return typeof place.venue.contact.formattedPhone !== 'undefined' ? '<p><strong><i class="zmdi zmdi-phone pr-5"></i> Contact: </strong>' + place.venue.contact.formattedPhone + '</p>' : '';
-        }
-
-        function _getLocationTips() {
-            return typeof place.tips !== 'undefined' ? '<p><strong>Tips: </strong>' + place.tips[0].text + '</p>' : '';
-        }
-
-        function _getLocationUrl() {
-            return typeof place.venue.url !== 'undefined' ? '<p><a href = "' + place.venue.url + '" target = "_blank">' + place.venue.url + '</a></p>' : '';
-        }
-    };
+    }
 
     showInfo = function() {
         var place = this;
 
-        ko.utils.arrayForEach(self.markers(), function(marker) {
+        ko.utils.arrayForEach(viewModel.markers(), function(marker) {
 
             if (place.title === marker.title) {
 
                 if ( $(window).width() < 500 && $(window).height() < 800 ){
-                    self.showMenu(false);
-                    self.isWide(false);
+                    viewModel.showMenu(false);
+                    viewModel.isWide(false);
                 }
 
                 google.maps.event.trigger(marker, 'click');
@@ -136,61 +95,110 @@ var ViewModel = function() {
         });
     };
 
-    self.filteredMarkers = ko.computed(function() {
+    return viewModel;
+};
 
-        // Remove markers from map
-        ko.utils.arrayForEach(self.markers(), function(marker) {
-            marker.setVisible(false);
+function displayLocationsOnMap(locations) {
+
+    locations.forEach(function(location) {
+
+        var marker = getMarker(location);
+
+        // Click event to open infowindow and set animation at each marker
+        marker.addListener('click', function() {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+            populateInfoWindow(this, APP.gm_largeInfowindow, location);
+            setTimeout(function() { marker.setAnimation(null); }, 1400);  //bounce for 1400 ms
         });
 
-        var filteredArray = [];
-
-        filteredArray =  $.grep(self.markers(), function(a) {
-            var locationSearch = a.title.toLowerCase().indexOf(self.searchPlaces().toLowerCase());
-            return locationSearch > -1;
-        });
-
-        filteredArray.forEach(function(a) {
-            ko.utils.arrayForEach(self.markers(), function(marker) {
-                if(marker.title === a.title) {
-                    marker.setVisible(true);
-                }
-            });
-        });
-
-        return filteredArray;
+        APP.markers.push(marker);
+        APP.gm_bounds.extend(marker.position);
+        map.fitBounds(APP.gm_bounds);
     });
+}
 
-    function displayLocationsOnMap(locations) {
+function populateInfoWindow(marker, infowindow, place) {
+    // Check to make sure the infowindow is not already opened on this marker
+    if (infowindow.marker != marker) {
+        infowindow.marker = marker;
 
-        locations.forEach(function(location) {
-            var marker = new google.maps.Marker({
-                position: {
-                    lat: location.venue.location.lat,
-                    lng: location.venue.location.lng
-                },
-                map: map,
-                title: location.venue.name,
-                animation: google.maps.Animation.DROP
-            });
+        var contentString = [
+            '<h2>' + marker.title + '</h2>',
+            '<p class="mt0">' + place.venue.categories[0].name + '</p>',
+            '<p><strong><i class="zmdi zmdi-navigation pr-5"></i> Address: </strong>' + place.venue.location.formattedAddress + '</p>',
+            _getLocationPhone(),
+            _getLocationTips(),
+            _getLocationUrl(),
+            '<a href="https://foursquare.com/" target = "_blank">',
+            '<img src="https://ss0.4sqi.net/img/poweredByFoursquare/poweredby-one-color-cdf070cc7ae72b3f482cf2d075a74c8c.png" width="200" alt="Foursquare Logo">',
+            '</a>'
+        ].join(' ');
 
-            self.markers.push(marker);
+        infowindow.setContent(contentString);
+        infowindow.open(map, marker);
 
-            // Click event to open infowindow and set animation at each marker
-            marker.addListener('click', function() {
-                marker.setAnimation(google.maps.Animation.BOUNCE);
-                self.populateInfoWindow(this, APP.gm_largeInfowindow, location);
-                setTimeout(function() { marker.setAnimation(null); }, 1400);  //bounce for 1400 ms
-            });
-
-            APP.gm_bounds.extend(marker.position);
-            map.fitBounds(APP.gm_bounds);
+        infowindow.addListener('closeclick',function(){
+            infowindow.setMarker = null;
+            infowindow.setContent('');
         });
     }
-};
+
+    function _getLocationPhone() {
+        return typeof place.venue.contact.formattedPhone !== 'undefined' ? '<p><strong><i class="zmdi zmdi-phone pr-5"></i> Contact: </strong>' + place.venue.contact.formattedPhone + '</p>' : '';
+    }
+
+    function _getLocationTips() {
+        return typeof place.tips !== 'undefined' ? '<p><strong>Tips: </strong>' + place.tips[0].text + '</p>' : '';
+    }
+
+    function _getLocationUrl() {
+        return typeof place.venue.url !== 'undefined' ? '<p><a href = "' + place.venue.url + '" target = "_blank">' + place.venue.url + '</a></p>' : '';
+    }
+}
+
+//return google maps marker based on location
+function getMarker(location) {
+    return new google.maps.Marker({
+        position: {
+            lat: location.venue.location.lat,
+            lng: location.venue.location.lng
+        },
+        map: map,
+        title: location.venue.name,
+        animation: google.maps.Animation.DROP
+    });
+}
+
+// Method to load the data for the user entered location using foursquare API
+function loadFoursquareData() {
+    var foursquareUrl = 'https://api.foursquare.com/v2/venues/explore?ll=' + APP.lat + ',' + APP.lng + '&limit='+APP.numberOfPlaces+'&section=topPicks&day=any&time=any&locale=en&client_id='+APP.forsquareClientId+'&client_secret='+APP.forsquareSecret+'&v='+APP.forsquareVersion;
+
+    APP.gm_largeInfowindow = new google.maps.InfoWindow({maxWidth: 200});
+    APP.gm_bounds = new google.maps.LatLngBounds();
+
+    $.getJSON(foursquareUrl).done(function(data) {
+        displayLocationsOnMap(data.response.groups[0].items);
+        initViewModel();
+    }).fail(function() {
+        window.alert('Foursquare API data could not be loaded. Please try again!');
+    });
+}
 
 function errorHandling() {
     alert("Google Maps can not be loaded. Please try again.");
 }
 
-ko.applyBindings(new ViewModel());
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: {
+            lat: APP.lat,
+            lng: APP.lng
+        }
+    });
+
+    loadFoursquareData();
+}
+
+function initViewModel() {
+    ko.applyBindings(new ViewModel());
+}
